@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impacto del Feedback en el Aprendizaje</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ====== VARIABLES DE DISEÑO ====== */
+    :root {
+      --bg: #A2D5F2;
+      --bg-deep: #7ABDE0;
+      --bg-light: #C5E5F7;
+      --fg: #0F2A4A;
+      --fg-light: #2C5282;
+      --muted: #4A6FA5;
+      --accent: #1F3C88;
+      --accent-light: #39A2DB;
+      --card: #FFFFFF;
+      --card-hover: #F7FBFF;
+      --border: rgba(31, 60, 136, 0.08);
+      --shadow-sm: 0 2px 8px rgba(15, 42, 74, 0.06);
+      --shadow-md: 0 8px 30px rgba(15, 42, 74, 0.10);
+      --shadow-lg: 0 20px 60px rgba(15, 42, 74, 0.15);
+      --shadow-glow: 0 0 40px rgba(57, 162, 219, 0.25);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    /* ====== RESET Y BASE ====== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ====== FONDO ATMOSFÉRICO ====== */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Gradientes decorativos de fondo */
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: blobFloat 20s ease-in-out infinite alternate;
+    }
+
+    .bg-blob--1 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #39A2DB 0%, transparent 70%);
+      top: -150px;
+      right: -100px;
+      animation-delay: 0s;
+    }
+
+    .bg-blob--2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #1F3C88 0%, transparent 70%);
+      bottom: -100px;
+      left: -80px;
+      animation-delay: -7s;
+    }
+
+    .bg-blob--3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, #C5E5F7 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -14s;
+    }
+
+    @keyframes blobFloat {
+      0% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+      100% { transform: translate(10px, -10px) scale(1.02); }
+    }
+
+    /* Canvas de partículas */
+    #particles {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ====== CONTENEDOR PRINCIPAL ====== */
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 50px 24px 40px;
+    }
+
+    /* ====== CABECERA ====== */
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeSlideUp 0.8s ease forwards 0.2s;
+    }
+
+    .header__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(31, 60, 136, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(31, 60, 136, 0.15);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border-radius: 50px;
+      margin-bottom: 24px;
+    }
+
+    .header__badge i {
+      font-size: 0.75rem;
+    }
+
+    .header__title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: var(--accent);
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .header__subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 550px;
+      margin: 0 auto;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    /* Línea decorativa bajo el título */
+    .header__line {
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-light), var(--accent));
+      border-radius: 4px;
+      margin: 20px auto 0;
+    }
+
+    /* ====== LISTA DE TARJETAS ====== */
+    .lista {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .lista li {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      background: var(--card);
+      padding: 24px 28px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+      transition:
+        transform 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+        box-shadow 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+        background 0.3s ease;
+      box-shadow: var(--shadow-sm);
+
+      /* Animación de entrada */
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    /* Barra lateral de color en cada tarjeta */
+    .lista li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, var(--accent-light), var(--accent));
+      border-radius: 4px 0 0 4px;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    /* Efecto de luz que sigue al cursor */
+    .lista li::after {
+      content: "";
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(57, 162, 219, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      transform: translate(-50%, -50%);
+      top: var(--mouse-y, 50%);
+      left: var(--mouse-x, 50%);
+    }
+
+    /* Animaciones de entrada escalonadas */
+    .lista li:nth-child(1) { animation: fadeSlideUp 0.7s ease forwards 0.4s; }
+    .lista li:nth-child(2) { animation: fadeSlideUp 0.7s ease forwards 0.55s; }
+    .lista li:nth-child(3) { animation: fadeSlideUp 0.7s ease forwards 0.7s; }
+    .lista li:nth-child(4) { animation: fadeSlideUp 0.7s ease forwards 0.85s; }
+    .lista li:nth-child(5) { animation: fadeSlideUp 0.7s ease forwards 1.0s; }
+
+    /* Hover de tarjeta */
+    .lista li:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      background: var(--card-hover);
+    }
+
+    .lista li:hover::before {
+      opacity: 1;
+    }
+
+    .lista li:hover::after {
+      opacity: 1;
+    }
+
+    /* ====== ICONO CON EFECTO SEMICÍRCULO ====== */
+    .icono {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      min-width: 62px;
+      background: transparent;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      z-index: 1;
+      transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .lista li:hover .icono {
+      transform: scale(1.1) rotate(-5deg);
+    }
+
+    /* Semicírculo inicial (izquierdo, color claro) */
+    .icono::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #5BBEF0, var(--accent-light));
+      border-radius: 50%;
+      clip-path: inset(0 50% 0 0);
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: -1;
+    }
+
+    /* Semicírculo oculto (derecho, color oscuro) */
+    .icono::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--accent), #163060);
+      border-radius: 50%;
+      clip-path: inset(0 0 0 50%);
+      transform: rotate(0deg);
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: -1;
+    }
+
+    /* Hover: completa el círculo */
+    .lista li:hover .icono::after {
+      transform: rotate(180deg);
+    }
+
+    /* ====== CONTENIDO DE TEXTO ====== */
+    .contenido {
+      flex: 1;
+      padding-top: 2px;
+    }
+
+    .contenido h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--fg);
+      line-height: 1.4;
+      margin-bottom: 8px;
+      position: relative;
+      display: inline-block;
+      transition: color 0.3s ease;
+    }
+
+    .lista li:hover .contenido h3 {
+      color: var(--accent);
+    }
+
+    /* Línea ondulada bajo el título */
+    .contenido h3::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 100%;
+      height: 6px;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 3 Q 10 0, 20 3 T 40 3 T 60 3 T 80 3 T 100 3' stroke='%231F3C88' fill='transparent' stroke-width='1.5'/%3E%3C/svg%3E");
+      background-size: 100px 6px;
+      background-repeat: repeat-x;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .lista li:hover .contenido h3::after {
+      opacity: 1;
+      animation: wave 2s linear infinite;
+    }
+
+    @keyframes wave {
+      from { background-position: 0 0; }
+      to { background-position: 100px 0; }
+    }
+
+    .contenido p {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.65;
+      font-weight: 400;
+    }
+
+    /* Número decorativo en cada tarjeta */
+    .card-number {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.5rem;
+      color: rgba(31, 60, 136, 0.04);
+      line-height: 1;
+      user-select: none;
+      transition: color 0.4s ease;
+    }
+
+    .lista li:hover .card-number {
+      color: rgba(57, 162, 219, 0.08);
+    }
+
+    /* ====== SEPARADOR DECORATIVO ====== */
+    .separator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 45px 0 40px;
+      opacity: 0;
+      animation: fadeSlideUp 0.7s ease forwards 1.15s;
+    }
+
+    .separator__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      opacity: 0.5;
+    }
+
+    .separator__dot--center {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      opacity: 0.7;
+    }
+
+    .separator__line {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
+    }
+
+    /* ====== FOOTER ====== */
+    footer {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding-top: 20px;
+      border-top: 1px solid rgba(31, 60, 136, 0.1);
+      opacity: 0;
+      animation: fadeSlideUp 0.7s ease forwards 1.3s;
+    }
+
+    footer p {
+      margin: 6px 0;
+      line-height: 1.5;
+    }
+
+    footer p:first-child {
+      font-weight: 500;
+      color: var(--fg-light);
+    }
+
+    footer a {
+      color: var(--accent-light);
+      text-decoration: none;
+      border-bottom: 1px dashed var(--accent-light);
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    footer a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ====== ANIMACIONES GLOBALES ====== */
+    @keyframes fadeSlideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ====== RESPETAR PREFERENCIA DE MOVIMIENTO REDUCIDO ====== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .bg-blob { animation: none; }
+      #particles { display: none; }
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 640px) {
+      .container {
+        padding: 35px 16px 30px;
+      }
+
+      .header {
+        margin-bottom: 35px;
+      }
+
+      .header__title {
+        font-size: 1.85rem;
+      }
+
+      .lista li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 20px 22px;
+      }
+
+      .icono {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        font-size: 20px;
+      }
+
+      .contenido h3 {
+        font-size: 0.98rem;
+      }
+
+      .contenido p {
+        font-size: 0.88rem;
+      }
+
+      .card-number {
+        font-size: 2rem;
+        top: 10px;
+        right: 14px;
+      }
+    }
+
+    /* ====== FOCUS VISIBLE PARA ACCESIBILIDAD ====== */
+    .lista li:focus-visible {
+      outline: 3px solid var(--accent-light);
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Capas de fondo atmosférico -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="bg-blob bg-blob--1"></div>
+    <div class="bg-blob bg-blob--2"></div>
+    <div class="bg-blob bg-blob--3"></div>
+  </div>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <main class="container">
+
+    <!-- Cabecera -->
+    <header class="header">
+      <div class="header__badge">
+        <i class="fa-solid fa-chart-line"></i>
+        Infografía Educativa
+      </div>
+      <h1 class="header__title">Impacto del Feedback en el Aprendizaje</h1>
+      <p class="header__subtitle">Cinco hallazgos clave sobre cómo la retroalimentación moldea la experiencia estudiantil y los resultados académicos.</p>
+      <div class="header__line"></div>
+    </header>
+
+    <!-- Lista de hallazgos -->
+    <ul class="lista" role="list">
+
+      <li tabindex="0">
+        <span class="card-number" aria-hidden="true">01</span>
+        <div class="icono" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></div>
+        <div class="contenido">
+          <h3>La retroalimentación positiva impulsa el compromiso</h3>
+          <p>La retroalimentación positiva aumenta significativamente la participación, motivación e involucramiento de los estudiantes en el proceso de aprendizaje.</p>
+        </div>
+      </li>
+
+      <li tabindex="0">
+        <span class="card-number" aria-hidden="true">02</span>
+        <div class="icono" aria-hidden="true"><i class="fa-solid fa-chart-column"></i></div>
+        <div class="contenido">
+          <h3>El feedback no garantiza mejor rendimiento académico</h3>
+          <p>Aunque el feedback positivo mejora ligeramente los resultados, no existe una diferencia significativa frente al feedback negativo.</p>
+        </div>
+      </li>
+
+      <li tabindex="0">
+        <span class="card-number" aria-hidden="true">03</span>
+        <div class="icono" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="contenido">
+          <h3>El feedback es clave en el aprendizaje moderno</h3>
+          <p>En modelos centrados en el estudiante, la retroalimentación es esencial para guiar y mejorar el aprendizaje.</p>
+        </div>
+      </li>
+
+      <li tabindex="0">
+        <span class="card-number" aria-hidden="true">04</span>
+        <div class="icono" aria-hidden="true"><i class="fa-solid fa-brain"></i></div>
+        <div class="contenido">
+          <h3>La calidad del feedback determina su efectividad</h3>
+          <p>Debe ser claro, oportuno y constructivo para identificar errores y potenciar el pensamiento crítico.</p>
+        </div>
+      </li>
+
+      <li tabindex="0">
+        <span class="card-number" aria-hidden="true">05</span>
+        <div class="icono" aria-hidden="true"><i class="fa-solid fa-gears"></i></div>
+        <div class="contenido">
+          <h3>Factores personales influyen en el impacto del feedback</h3>
+          <p>Motivación, autorregulación y autoconfianza determinan cómo se aprovecha la retroalimentación.</p>
+        </div>
+      </li>
+
+    </ul>
+
+    <!-- Separador decorativo -->
+    <div class="separator" aria-hidden="true">
+      <span class="separator__line"></span>
+      <span class="separator__dot"></span>
+      <span class="separator__dot separator__dot--center"></span>
+      <span class="separator__dot"></span>
+      <span class="separator__line"></span>
+    </div>
+
+    <!-- Pie de página -->
+    <footer>
+      <p>Fuente: The Influence of Feedback Learning on Student Engagement and Student Performance — <a href="https://doi.org/10.22521/edupij.2025.17.318" target="_blank" rel="noopener noreferrer">DOI: 10.22521/edupij.2025.17.318</a></p>
+      <p>Diseñado por: Samantha Guerra Vásquez</p>
+    </footer>
+
+  </main>
+
+  <script>
+    /* ====== SISTEMA DE PARTÍCULAS DE FONDO ====== */
+    ;(function () {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      let particles = [];
+      const PARTICLE_COUNT = 40;
+
+      /* Tamaño del canvas igual a la ventana */
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      /* Clase partícula */
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * w;
+          this.y = Math.random() * h;
+          this.radius = Math.max(1.5, Math.random() * 3);
+          this.speedX = (Math.random() - 0.5) * 0.3;
+          this.speedY = (Math.random() - 0.5) * 0.3;
+          this.opacity = Math.random() * 0.25 + 0.05;
+          /* Color entre azul claro y azul oscuro */
+          const colors = [
+            [57, 162, 219],
+            [31, 60, 136],
+            [122, 189, 224],
+            [197, 229, 247]
+          ];
+          this.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          /* Rebote suave en los bordes */
+          if (this.x < -10 || this.x > w + 10 || this.y < -10 || this.y > h + 10) {
+            this.reset();
+            /* Re-entrar desde un borde aleatorio */
+            if (Math.random() > 0.5) {
+              this.x = Math.random() > 0.5 ? -5 : w + 5;
+              this.y = Math.random() * h;
+            } else {
+              this.y = Math.random() > 0.5 ? -5 : h + 5;
+              this.x = Math.random() * w;
+            }
+          }
+        }
+        draw() {
+          const [r, g, b] = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, Math.max(0.5, this.radius), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${b},${this.opacity})`;
+          ctx.fill();
+        }
+      }
+
+      /* Inicializar partículas */
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(new Particle());
+      }
+
+      /* Dibujar líneas conectoras entre partículas cercanas */
+      function drawConnections() {
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150) {
+              const alpha = (1 - dist / 150) * 0.06;
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(31,60,136,${alpha})`;
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      /* Bucle de animación */
+      function animate() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        drawConnections();
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+
+    /* ====== EFECTO DE LUZ QUE SIGUE AL CURSOR EN LAS TARJETAS ====== */
+    ;(function () {
+      const cards = document.querySelectorAll('.lista li');
+
+      cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--mouse-x', x + 'px');
+          card.style.setProperty('--mouse-y', y + 'px');
+        });
+      });
+    })();
+
+    /* ====== SCROLL REVEAL PARA DISPOSITIVOS QUE ENTRAN SIN ANIMACIÓN ====== */
+    ;(function () {
+      /* Si las animaciones ya se dispararon al cargar, no hacemos nada extra */
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, { threshold: 0.15 });
+
+      /* Observar los elementos que podrían no haberse animado (ej: conexiones lentas) */
+      document.querySelectorAll('.lista li, .header, footer, .separator').forEach(el => {
+        observer.observe(el);
+      });
+    })();
+  </script>
+
+</body>
+</html>
